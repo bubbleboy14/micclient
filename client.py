@@ -12,7 +12,11 @@ class MICSClient(object):
         self.name = name
         if ai:
             try:
-                book = Book(os.path.join('books','%s'%book_name))
+                if book_name:
+                    book = Book(os.path.join('books','%s'%book_name))
+                else:
+                    book_name = '_nobook'
+                    book = None
                 self.ai = __import__("ai.%s"%ai,fromlist=["ai"]).Brain(depth, self.move, self.ai_out, book, random)
             except InvalidBookException:
                 print "invalid opening book specified. make sure your .book file is in the 'books' folder"
@@ -29,7 +33,7 @@ class MICSClient(object):
             except:
                 print "invalid ai specified. please check your code."
                 return
-            self.name = 'AI:%s'%ai
+            self.name = '%s::%s'%(ai, book_name)
         else:
             self.ai = None
         self.verbose = verbose
