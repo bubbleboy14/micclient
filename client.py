@@ -3,7 +3,7 @@ rel.override()
 rel.initialize(['epoll','poll','select'])
 from dez.network import SimpleClient
 from dez.xml_tools import XMLNode
-from chesstools import Board, Move, List
+from chesstools import Board, Move, List, COLORS
 from chesstools.book import Book, InvalidBookException
 from display import Display
 
@@ -33,14 +33,14 @@ class MICSClient(object):
             except:
                 print "invalid ai specified. please check your code."
                 return
-            self.name = '%s::%s'%(ai, book_name)
+            self.name = '%s:%s'%(ai, book_name)
         else:
             self.ai = None
         self.verbose = verbose
-        self.output('connecting to server at %s:%s'%(host,port))
+        self.output('connecting to %s:%s'%(host,port))
         self.board = Board()
         self.moves = List()
-        self.display = Display(self.move, self.promotion, self.draw, self.new, self.save, self.quit, self.timeout, self.seek)
+        self.display = Display(self.move, self.promotion, self.draw, self.new, self.save, self.quit, self.timeout, self.seek, self.chat)
         self.color = None
         self.last_color = None
         self.active = False
@@ -52,11 +52,11 @@ class MICSClient(object):
         self.conn.set_close_cb(self.__closed)
         self.conn.set_rmode_xml(self.recv)
         self.active = True
-        self.display.text('connected to server')
+        self.display.text('logged in')
 
     def __closed(self):
         self.active = False
-        self.display.text('connection to server lost')
+        self.display.text('connection lost')
 
     def ai_out(self, txt):
         self.display.text(txt)
@@ -65,6 +65,12 @@ class MICSClient(object):
         if self.verbose:
             print txt
 
+    def chat(self, txt):
+        x = XMLNode('chat')
+        x.add_child(txt)
+        self.send(x)
+        self.display.draw_chat(txt, self.color)
+
     def draw(self):
         self.display.text('you offer a draw')
         self.send(XMLNode('draw'))
@@ -72,7 +78,7 @@ class MICSClient(object):
     def new(self):
         if self.color:
             self.send(XMLNode('forfeit'))
-        self.display.text('choose initial time and increment')
+        self.display.text('time controls')
         self.display.get_time_controls()
         self.send(XMLNode('list'))
 
@@ -130,12 +136,12 @@ class MICSClient(object):
                 p = self.board.get_square(m.source)
                 self.moves.add(m)
                 if hasattr(p,'promotion_row') and p.promotion_row == m.destination[0] and not m.promotion:
-                    self.display.text('select promotion piece')
+                    self.display.text('select promotion')
                     self.display.get_promotion()
                 else:
                     self.submit_move(m)
             else:
-                self.display.text('illegal move: %s'%m)
+                self.display.text('bad move: %s'%m)
                 self.display.unselect()
                 self.display.get_move()
         else:
@@ -167,7 +173,7 @@ class MICSClient(object):
             self.display.set_caption('%s v %s'%(w,b))
             self.board.reset()
             self.reset_board()
-            self.update('game started. you are %s.'%self.color)
+            self.update('you are %s'%self.color)
             if self.color == 'white':
                 self.get_move()
         elif data.name == 'time':
@@ -182,21 +188,23 @@ class MICSClient(object):
             self.board.move(m)
             self.update('your move')
             self.get_move()
+        elif data.name == 'chat':
+            self.display.draw_chat(data.children[0], COLORS[self.color])
         elif data.name == 'gameover':
             self.moves.outcome = data.attr('outcome')
             if self.moves.last_move:
                 self.moves.last_move.comment = data.attr('reason')
-            self.display.text("game over: %s - %s"%(self.moves.outcome, data.attr('reason')))
+            self.display.text("%s - %s"%(self.moves.outcome, data.attr('reason')))
             self.display.stop_time()
             self.color = None
         elif data.name == 'draw':
-            self.display.text('Your opponent offers a draw')
+            self.display.text('draw?')
         elif data.name == 'notice':
             self.display.text(data.children[0])
         elif data.name == 'list':
-            self.display.list_seeks(['%s-%s'%(int(child.attr('initial'))/60, child.attr('increment')) for child in data.children if int(child.attr('initial')) <= 300], ['%s-%s'%(int(child.attr('initial'))/60, child.attr('increment')) for child in data.children if int(child.attr('initial')) > 300])
+            self.display.list_seeks([(child.attr('name'), '%s-%s'%(int(child.attr('initial'))/60, child.attr('increment'))) for child in data.children])
         else:
-            raise Exception, "invalid data from server: %s"%data
+            raise Exception, "invalid data from server: %s\ndo you have the most recent client release?"%data
 
     def send(self, data):
         self.output('SEND: %s'%data)
