@@ -43,6 +43,7 @@ class MICSClient(object):
         self.display = Display(self.move, self.promotion, self.draw, self.new, self.save, self.quit, self.timeout, self.seek, self.chat)
         self.color = None
         self.last_color = None
+        self.timelock = None
         self.active = False
         self.client = SimpleClient()
         self.client.connect(host, port, self.__connected)
@@ -167,6 +168,7 @@ class MICSClient(object):
             self.color = data.attr('color')
             self.last_color = self.color
             initial, increment = data.attr('initial'), data.attr('increment')
+            self.timelock = int(data.attr('timelock'))
             self.display.set_time(initial, increment)
             w, b = data.attr('white'), data.attr('black')
             self.moves.reset((int(initial)/60, increment), w, b)
@@ -182,6 +184,8 @@ class MICSClient(object):
             self.display.switch_time()
             self.update('move confirmed')
         elif data.name == 'move':
+            if self.timelock:
+                self.send(XMLNode('received'))
             self.display.switch_time()
             m = Move(data.attr('from'), data.attr('to'), data.attr('promotion'))
             self.moves.add(m)
@@ -212,7 +216,7 @@ class MICSClient(object):
             self.conn.write(str(data))
 
 if __name__ == "__main__":
-    parser = optparse.OptionParser('client [-s SERVER] [-p PORT] [-a AI] [-v]')
+    parser = optparse.OptionParser('client [-s SERVER] [-p PORT] [-n NAME] [-a AI] [-d DEPTH] [-b BOOK] [-r RANDOM] [-v]')
     parser.add_option('-s', '--server', dest='server', default='mariobalibrera.com', help='connect to this server. default: mariobalibrera.com')
     parser.add_option('-p', '--port', dest='port', default='7777', help='connect to MICS server on this port. default: 7777')
     parser.add_option('-n', '--name', dest='name', default='anonymous', help='what do you call yourself?')
