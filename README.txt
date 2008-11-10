@@ -1,7 +1,7 @@
 Mario's Internet Chess Client
    author: Mario Balibrera
     email: mario.balibrera@gmail.com
-  website: mariobalibrera.com
+  website: mariobalibrera.com/mics
 
 To run this chess client, simply type "python client.py".
 
