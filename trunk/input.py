@@ -1,4 +1,4 @@
-import pygame
+import pygame, string
 from config import UNIT, WIDTH, HEIGHT
 
 class Input(object):
@@ -6,6 +6,7 @@ class Input(object):
         pygame.event.set_allowed(None)
         pygame.event.set_allowed(pygame.MOUSEBUTTONDOWN)
         pygame.event.set_allowed(pygame.KEYDOWN)
+        pygame.event.set_allowed(pygame.KEYUP)
         pygame.event.set_allowed(pygame.QUIT)
         self.interrupts = {}
         self.quit_cb = quit_cb
@@ -13,6 +14,8 @@ class Input(object):
         self.chat_cb = chat_cb
         self.chat_str = ''
         self.click_cb = None
+        self.shift = False
+        self.shifter = string.maketrans(string.ascii_lowercase+"1234567890`-=[]\\;',./", string.ascii_uppercase+'!@#$%^&*()~_+{}|:"<>?')
 
     def poll(self):
         event = pygame.event.poll()
@@ -27,19 +30,34 @@ class Input(object):
                 self.click_cb = None
                 cb(x, y)
         elif event.type == pygame.KEYDOWN:
-            if event.key < 123:
-                letter = chr(event.key)
-                if letter.isalpha():
-                    self.chat_str += letter
-                elif self.chat_str:
-                    if letter in " ',.":
-                        self.chat_str += letter
-                    elif letter == '\r':
-                        self.chat_cb(self.chat_str)
-                        self.chat_str = ''
-                    elif self.chat_str and letter == '\x08':
-                        self.chat_str = self.chat_str[:-1]
-                self.input_cb(self.chat_str)
+            if event.key > 32 and event.key < 128 or event.key == 20:
+                # normal input
+                self.chat_str += self.shift and string.translate(chr(event.key), self.shifter) or chr(event.key)
+            #elif event.key in [1,2,3,4,6] or event.key > 15 and event.key < 33:
+            elif event.key == pygame.K_SPACE:
+                # space
+                self.chat_str += " "
+            elif event.key in [pygame.K_LSHIFT, pygame.K_RSHIFT]:
+                # shift on
+                self.shift = True
+            elif event.key == pygame.K_CAPSLOCK:
+                # capslock
+                self.shift = not self.shift
+            elif self.chat_str:
+                #if event.key in [10, 13]:
+                if event.key == pygame.K_RETURN:
+                    # enter
+                    self.chat_cb(self.chat_str)
+                    self.chat_str = ''
+                elif event.key == pygame.K_BACKSPACE:
+                    # delete
+                    self.chat_str = self.chat_str[:-1]
+            else:
+                return True
+            self.input_cb(self.chat_str)
+        elif event.type == pygame.KEYUP and event.key in [pygame.K_LSHIFT, pygame.K_RSHIFT]:
+            # shift off
+            self.shift = False
         elif event.type == pygame.QUIT:
             return self.quit_cb()
         return True

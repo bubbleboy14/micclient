@@ -68,7 +68,7 @@ class MICSClient(object):
 
     def chat(self, txt):
         x = XMLNode('chat')
-        x.add_child(txt)
+        x.add_child(txt.replace('<','&lt;').replace('>','&gt;'))
         self.send(x)
         self.display.draw_chat(txt, self.color)
 
@@ -193,7 +193,7 @@ class MICSClient(object):
             self.update('your move')
             self.get_move()
         elif data.name == 'chat':
-            self.display.draw_chat(data.children[0], COLORS[self.color])
+            self.display.draw_chat(data.children[0].replace('&lt;','<').replace('&gt;','>'), COLORS[self.color])
         elif data.name == 'gameover':
             self.moves.outcome = data.attr('outcome')
             if self.moves.last_move:
