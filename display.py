@@ -24,10 +24,10 @@ class Display(object):
         self.screen = pygame.display.set_mode((int(WIDTH*UNIT),int(HEIGHT*UNIT)))
         self.highlighted = None
         self.captured = {'white':[-1,0],'black':[-1,0]}
-        self.small_font = pygame.font.SysFont('Monospace', HALF*90/100)
-        self.medium_font = pygame.font.SysFont('Monospace', HALF)
-        self.banner_font = pygame.font.SysFont('Monospace', UNIT)
-        self.timer_font = pygame.font.SysFont('Monospace', UNIT*8/7)
+        self.small_font = pygame.font.Font(None, HALF*90/100)
+        self.medium_font = pygame.font.Font(None, HALF)
+        self.banner_font = pygame.font.Font(None, UNIT)
+        self.timer_font = pygame.font.Font(None, UNIT*8/7)
         self.timer = Timer(300, 0)
         self.ticker = event.timeout(1, self.refresh_time)
         self.chats = [('',BRIGHT),('',BRIGHT),('',BRIGHT)]
