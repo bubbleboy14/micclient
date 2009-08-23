@@ -4,6 +4,7 @@ rel.initialize(['epoll','poll','select'])
 from dez.network import SimpleClient
 from dez.xml_tools import XMLNode
 from chesstools import Board, Move, List, COLORS
+from chesstools.piece import LETTER_TO_PIECE
 from chesstools.book import Book, InvalidBookException
 from display import Display
 
@@ -80,14 +81,15 @@ class MICSClient(object):
         if self.color:
             self.send(XMLNode('forfeit'))
         self.display.text('time controls')
-        self.display.get_time_controls()
+        self.display.get_game_settings()
         self.send(XMLNode('list'))
 
-    def seek(self, initial, increment):
+    def seek(self, initial, increment, variant):
         self.display.text('finding new game...')
         x = XMLNode('seek')
         x.add_attribute('initial',initial)
         x.add_attribute('increment',increment)
+        x.add_attribute('variant', variant)
         x.add_attribute('name',self.name)
         self.send(x)
 
@@ -173,7 +175,10 @@ class MICSClient(object):
             w, b = data.attr('white'), data.attr('black')
             self.moves.reset((int(initial)/60, increment), w, b)
             self.display.set_caption('%s v %s'%(w,b))
-            self.board.reset()
+            if data.attr('lineup'):
+                self.board.reset_960([LETTER_TO_PIECE[p] for p in data.attr('lineup')])
+            else:
+                self.board.reset()
             self.reset_board()
             self.update('you are %s'%self.color)
             if self.color == 'white':
@@ -206,7 +211,7 @@ class MICSClient(object):
         elif data.name == 'notice':
             self.display.text(data.children[0])
         elif data.name == 'list':
-            self.display.list_seeks([(child.attr('name'), '%s-%s'%(int(child.attr('initial'))/60, child.attr('increment'))) for child in data.children])
+            self.display.list_seeks([(child.attr('name'), '%s-%s %s'%(int(child.attr('initial'))/60, child.attr('increment'), child.attr('variant'))) for child in data.children])
         else:
             raise Exception, "invalid data from server: %s\ndo you have the most recent client release?"%data
 
