@@ -105,20 +105,31 @@ class Display(object):
             self.cbs['promotion'](choices[x-16].upper())
         self.input.tile(cb, HALF, x_min=16, y_max=0)
 
-    def get_time_controls(self):
+    def get_game_settings(self):
         self.seeking = True
         ini_square = {2:2,3:5,4:10,5:20}
         inc_square = {2:0,3:2,4:5,5:12}
-        def draw_options(txt, ops):
+        var_square = {4:"standard",5:"960"} # room for more!
+        def draw_options(txt, ops, big=False):
             self.box(BANNER_RECT, fill=PITCH, border=RED, blit=self.banner_font.render(txt, 1, BANNER_COLOR))
-            for tile, option in ops.items():
-                self.box((tile*UNIT, 4*UNIT, UNIT, UNIT), fill=self.get_color(tile, 4), blit=self.banner_font.render(str(option), 1, MOVES_COLOR))
+            if big:
+                for y, v in var_square.items():
+                    for x in range(2,6):
+                        self.box((x*UNIT, y*UNIT, UNIT, UNIT), fill=self.get_color(x, y))
+                    self.box((2*UNIT, y*UNIT, 4*UNIT, UNIT), border=GREEN, blit=self.banner_font.render(v, 1, RED))
+            else:
+                for tile, option in ops.items():
+                    self.box((tile*UNIT, 4*UNIT, UNIT, UNIT), fill=self.get_color(tile, 4), blit=self.banner_font.render(str(option), 1, MOVES_COLOR))
         def get_initial(x, y):
             initial = ini_square[x]*60
             def get_increment(x, y):
                 increment = inc_square[x]
-                self.seeking = False
-                self.cbs['seek'](initial, increment)
+                def get_variant(x, y):
+                    variant = var_square[y]
+                    self.seeking = False
+                    self.cbs['seek'](initial, increment, variant)
+                draw_options("Select Variant", var_square, big=True)
+                self.input.tile(get_variant, x_min=2, x_max=5, y_min=4, y_max=5)
             draw_options("Select Increment", inc_square)
             self.input.tile(get_increment, x_min=2, x_max=5, y_min=4, y_max=4)
         draw_options("Select Initial Time", ini_square)
