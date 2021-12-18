@@ -1,6 +1,11 @@
 import pygame, string
 from config import UNIT, WIDTH, HEIGHT
 
+def maketrans(a, b):
+    if hasattr(string, "maketrans"):
+        return string.maketrans(a, b)
+    return bytes.maketrans(a.encode(), b.encode())
+
 class Input(object):
     def __init__(self, quit_cb, input_cb, chat_cb):
         pygame.event.set_allowed(None)
@@ -15,13 +20,18 @@ class Input(object):
         self.chat_str = ''
         self.click_cb = None
         self.shift = False
-        self.shifter = string.maketrans(string.ascii_lowercase+"1234567890`-=[]\\;',./", string.ascii_uppercase+'!@#$%^&*()~_+{}|:"<>?')
+        self.shifter = maketrans(string.ascii_lowercase+"1234567890`-=[]\\;',./", string.ascii_uppercase+'!@#$%^&*()~_+{}|:"<>?')
 
     def poll(self):
-        event = pygame.event.poll()
+        for event in pygame.event.get():
+            if not self.process(event):
+                return
+        return True
+
+    def process(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
-            for [x1, y1, x2, y2], int_cb in self.interrupts.items():
+            for [x1, y1, x2, y2], int_cb in list(self.interrupts.items()):
                 if x > x1 and x < x1+x2 and y > y1 and y < y1+y2:
                     int_cb()
                     return True
@@ -69,7 +79,7 @@ class Input(object):
         if rect in self.interrupts:
             del self.interrupts[rect]
         else:
-            print '%s not in self.interrupts!'%(rect)
+            print('%s not in self.interrupts!'%(rect))
 
     def get(self, cb):
         pygame.event.clear()
@@ -88,8 +98,8 @@ class Input(object):
         if y_min is None: y_min = 0
         if y_max is None: y_max = HEIGHT*mult
         def cb2(a, b):
-            x = a/u
-            y = b/u
+            x = int(a/u)
+            y = int(b/u)
             if x < x_min or x > x_max or y < y_min or y > y_max:
                 self.click_cb = cb2
             else:

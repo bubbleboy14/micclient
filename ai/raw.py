@@ -3,4 +3,4 @@ class Brain(object):
         self.cb = move
 
     def __call__(self, board):
-        self.cb(raw_input("enter from:"), raw_input("enter to:"))
+        self.cb(input("enter from:"), input("enter to:"))

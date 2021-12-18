@@ -20,19 +20,19 @@ class MICSClient(object):
                     book = None
                 self.ai = __import__("ai.%s"%ai,fromlist=["ai"]).Brain(depth, self.move, self.ai_out, book, random)
             except InvalidBookException:
-                print "invalid opening book specified. make sure your .book file is in the 'books' folder"
+                print("invalid opening book specified. make sure your .book file is in the 'books' folder")
                 return
             except ImportError:
-                print "invalid ai specified. make sure your script is in the 'ai' folder."
+                print("invalid ai specified. make sure your script is in the 'ai' folder.")
                 return
             except AttributeError:
-                print "invalid ai specified. make sure your AI class is called 'Brain'."
+                print("invalid ai specified. make sure your AI class is called 'Brain'.")
                 return
             except TypeError:
-                print "invalid ai specified. make sure your AI class's constructor accepts an integer ply-count, a move callback, an output callback, an opening book object, and a randomness integer."
+                print("invalid ai specified. make sure your AI class's constructor accepts an integer ply-count, a move callback, an output callback, an opening book object, and a randomness integer.")
                 return
             except:
-                print "invalid ai specified. please check your code."
+                print("invalid ai specified. please check your code.")
                 return
             self.name = '%s:%s'%(ai, book_name)
         else:
@@ -65,7 +65,7 @@ class MICSClient(object):
 
     def output(self, txt):
         if self.verbose:
-            print txt
+            print(txt)
 
     def chat(self, txt):
         x = XMLNode('chat')
@@ -213,7 +213,7 @@ class MICSClient(object):
         elif data.name == 'list':
             self.display.list_seeks([(child.attr('name'), '%s-%s %s'%(int(child.attr('initial'))/60, child.attr('increment'), child.attr('variant'))) for child in data.children])
         else:
-            raise Exception, "invalid data from server: %s\ndo you have the most recent client release?"%data
+            raise Exception("invalid data from server: %s\ndo you have the most recent client release?"%data)
 
     def send(self, data):
         self.output('SEND: %s'%data)
@@ -233,12 +233,12 @@ if __name__ == "__main__":
     ops = parser.parse_args()[0]
     try:
         try:    port = int(ops.port)
-        except:     print "Invalid port: %s"%ops.port;raise
+        except:     print("Invalid port: %s"%ops.port);raise
         try:    depth = int(ops.depth)
-        except:     print "Invalid depth: %s"%ops.depth;raise
+        except:     print("Invalid depth: %s"%ops.depth);raise
         try:    random = int(ops.random)
-        except:     print "Invalid random: %s"%ops.random;raise
+        except:     print("Invalid random: %s"%ops.random);raise
     except:
-        print "exiting MICS client"
+        print("exiting MICS client")
     else:
         MICSClient(ops.server, port, ops.verbose, ops.name, ops.ai, depth, ops.book, random)
