@@ -11,7 +11,7 @@ class Display(object):
     def __init__(self, move_cb, promotion_cb, draw_cb, new_cb, save_cb, quit_cb, timeout_cb, seek_cb, chat_cb):
         self.cbs = {'move':move_cb, 'promotion':promotion_cb, 'draw':draw_cb, 'new':new_cb, 'save':save_cb, 'quit':quit_cb, 'timeout':timeout_cb, 'seek':seek_cb, 'chat':chat_cb}
         for folder in [os.path.join('skins','default',sub) for sub in ['white','black','misc']]:
-            for p in os.walk(folder).next()[2]:
+            for p in next(os.walk(folder))[2]:
                 setattr(self, p[:-4], pygame.image.load(os.path.join(folder,p)))
                 piece = getattr(self, p[:-4])
                 piece.set_colorkey(GREEN)
@@ -24,10 +24,10 @@ class Display(object):
         self.screen = pygame.display.set_mode((int(WIDTH*UNIT),int(HEIGHT*UNIT)))
         self.highlighted = None
         self.captured = {'white':[-1,0],'black':[-1,0]}
-        self.small_font = pygame.font.Font(None, HALF*90/100)
-        self.medium_font = pygame.font.Font(None, HALF)
+        self.small_font = pygame.font.Font(None, int(HALF*9/10))
+        self.medium_font = pygame.font.Font(None, int(HALF))
         self.banner_font = pygame.font.Font(None, UNIT)
-        self.timer_font = pygame.font.Font(None, UNIT*8/7)
+        self.timer_font = pygame.font.Font(None, int(UNIT*8/7))
         self.timer = Timer(300, 0)
         self.ticker = event.timeout(1, self.refresh_time)
         self.chats = [('',BRIGHT),('',BRIGHT),('',BRIGHT)]
@@ -113,12 +113,12 @@ class Display(object):
         def draw_options(txt, ops, big=False):
             self.box(BANNER_RECT, fill=PITCH, border=RED, blit=self.banner_font.render(txt, 1, BANNER_COLOR))
             if big:
-                for y, v in var_square.items():
+                for y, v in list(var_square.items()):
                     for x in range(2,6):
                         self.box((x*UNIT, y*UNIT, UNIT, UNIT), fill=self.get_color(x, y))
                     self.box((2*UNIT, y*UNIT, 4*UNIT, UNIT), border=GREEN, blit=self.banner_font.render(v, 1, RED))
             else:
-                for tile, option in ops.items():
+                for tile, option in list(ops.items()):
                     self.box((tile*UNIT, 4*UNIT, UNIT, UNIT), fill=self.get_color(tile, 4), blit=self.banner_font.render(str(option), 1, MOVES_COLOR))
         def get_initial(x, y):
             initial = ini_square[x]*60
@@ -237,6 +237,7 @@ class Display(object):
     def get_color(self, x, y):
         return (x+y)%2 and BLACK or WHITE
 
-    def update(self, (y,x), piece):
+    def update(self, xxx_todo_changeme, piece):
+        (y,x) = xxx_todo_changeme
         x, y = self.adjust_perspective(x,y)
         self.box((x*UNIT, y*UNIT, UNIT, UNIT), fill=self.get_color(x, y), attr=piece)
