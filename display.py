@@ -12,7 +12,7 @@ class Display(object):
         self.cbs = {'move':move_cb, 'promotion':promotion_cb, 'draw':draw_cb, 'new':new_cb, 'save':save_cb, 'quit':quit_cb, 'timeout':timeout_cb, 'seek':seek_cb, 'chat':chat_cb}
         for folder in [os.path.join('skins','default',sub) for sub in ['white','black','misc']]:
             for p in next(os.walk(folder))[2]:
-                setattr(self, p[:-4], pygame.image.load(os.path.join(folder,p)))
+                setattr(self, p[:-4], pygame.transform.scale2x(pygame.image.load(os.path.join(folder,p))))
                 piece = getattr(self, p[:-4])
                 piece.set_colorkey(GREEN)
                 if folder != 'misc':
