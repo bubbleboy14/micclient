@@ -14,11 +14,11 @@ class MICSClient(object):
         if ai:
             try:
                 if book_name:
-                    book = Book(os.path.join('books','%s'%book_name))
+                    book = Book(os.path.join('books', book_name))
                 else:
                     book_name = '_nobook'
                     book = None
-                self.ai = __import__("ai.%s"%ai,fromlist=["ai"]).Brain(depth, self.move, self.ai_out, book, random)
+                self.ai = __import__("ai.%s"%(ai,),fromlist=["ai"]).Brain(depth, self.move, self.ai_out, book, random)
             except InvalidBookException:
                 print("invalid opening book specified. make sure your .book file is in the 'books' folder")
                 return
