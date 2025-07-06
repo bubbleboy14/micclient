@@ -1,0 +1,3 @@
+chesstools
+pygame
+dez
