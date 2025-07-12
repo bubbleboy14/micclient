@@ -9,7 +9,9 @@ from chesstools.book import Book, InvalidBookException
 from display import Display
 
 class MICSClient(object):
-    def __init__(self, host, port, verbose, name, ai, depth, book_name, random):
+    def __init__(self, host, port, verbose, name, ai, depth, book_name, random, tiny=False):
+        from config import setScale
+        setScale(not tiny)
         self.name = name
         if ai:
             try:
@@ -230,15 +232,16 @@ if __name__ == "__main__":
     parser.add_option('-b', '--book', dest='book', default='', help='use an opening book (from the books folder)')
     parser.add_option('-r', '--random', dest='random', default='1', help='make your ai/opening book randomly select one of the "r" best moves')
     parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='turn this on to learn the MICS protocol!')
+    parser.add_option('-t', '--tiny', action='store_true', dest='tiny', default=False, help='small board')
     ops = parser.parse_args()[0]
     try:
         try:    port = int(ops.port)
-        except:     print("Invalid port: %s"%ops.port);raise
+        except:     print("Invalid port: %s"%(ops.port,));raise
         try:    depth = int(ops.depth)
-        except:     print("Invalid depth: %s"%ops.depth);raise
+        except:     print("Invalid depth: %s"%(ops.depth,));raise
         try:    random = int(ops.random)
-        except:     print("Invalid random: %s"%ops.random);raise
+        except:     print("Invalid random: %s"%(ops.random,));raise
     except:
         print("exiting MICS client")
     else:
-        MICSClient(ops.server, port, ops.verbose, ops.name, ops.ai, depth, ops.book, random)
+        MICSClient(ops.server, port, ops.verbose, ops.name, ops.ai, depth, ops.book, random, ops.tiny)
