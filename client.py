@@ -1,6 +1,4 @@
 import rel, optparse, os
-rel.override()
-rel.initialize(['epoll','poll','select'])
 from dez.network import SimpleClient
 from dez.xml_tools import XMLNode
 from chesstools import Board, Move, List, COLORS

@@ -1,4 +1,4 @@
-import event, os, pygame
+import rel, os, pygame
 pygame.init()
 from chesstools import Timer
 from chesstools.move import from_tile
@@ -29,7 +29,7 @@ class Display(object):
         self.set_caption('MICS Chess Client')
         pygame.display.set_icon(self.N_small)
         self.input = Input(quit_cb, self.draw_input, chat_cb)
-        event.timeout(0.05, self.input.poll)
+        rel.timeout(0.05, self.input.poll)
         self.screen = pygame.display.set_mode((int(sizes.width*UNIT),int(sizes.height*UNIT)))
         self.highlighted = None
         self.captured = {'white':[-1,0],'black':[-1,0]}
@@ -38,7 +38,7 @@ class Display(object):
         self.banner_font = pygame.font.Font(None, UNIT)
         self.timer_font = pygame.font.Font(None, int(UNIT*8/7))
         self.timer = Timer(300, 0)
-        self.ticker = event.timeout(1, self.refresh_time)
+        self.ticker = rel.timeout(1, self.refresh_time)
         self.chats = [('',BRIGHT),('',BRIGHT),('',BRIGHT)]
         self.reset('white')
         self.seeking = False
