@@ -1,6 +1,17 @@
 from fyg import Config
 
 config = Config({
+	"defaults": {
+		"port": 7777,
+		"name": "anonymous",
+		"server": "mariobalibrera.com"
+	},
+	"opponent": {
+		"depth": 2,
+		"tiny": True,
+		"ai": "simple",
+		"book": "random"
+	},
 	"rects": {},
 	"sizes": {
 		"width": 10,
