@@ -91,10 +91,10 @@ class Input(object):
         else:
             self.quit_cb()
 
-    def tile(self, cb, x_min=None, x_max=None, y_min=None, y_max=None):
+    def tile(self, cb, u=None, x_min=None, x_max=None, y_min=None, y_max=None):
         sizes = config.sizes
-        mult = sizes.mult
-        u = sizes.unit
+        u = u or sizes.unit
+        mult = sizes.unit / u
         if x_min is None: x_min = 0
         if x_max is None: x_max = sizes.width * mult
         if y_min is None: y_min = 0
