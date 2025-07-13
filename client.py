@@ -1,24 +1,28 @@
 import rel, optparse, os
-rel.override()
-rel.initialize(['epoll','poll','select'])
+from random import choice as ranchoice
 from dez.network import SimpleClient
 from dez.xml_tools import XMLNode
 from chesstools import Board, Move, List, COLORS
 from chesstools.piece import LETTER_TO_PIECE
 from chesstools.book import Book, InvalidBookException
+from vopp import getOpponent
 from display import Display
+from config import config, setScale
 
 class MICSClient(object):
-    def __init__(self, host, port, verbose, name, ai, depth, book_name, random):
+    def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False):
+        setScale(not tiny)
         self.name = name
         if ai:
             try:
-                if book_name:
-                    book = Book(os.path.join('books', book_name))
+                if book:
+                    if book == "random": # omit white-only minchev
+                        book = ranchoice(["fischer", "morphy", "najdorf", "spassky"])
+                    bookinst = Book(os.path.join('books', book))
                 else:
-                    book_name = '_nobook'
-                    book = None
-                self.ai = __import__("ai.%s"%(ai,),fromlist=["ai"]).Brain(depth, self.move, self.ai_out, book, random)
+                    book = '_nobook'
+                    bookinst = None
+                self.ai = __import__("ai.%s"%(ai,),fromlist=["ai"]).Brain(depth, self.move, self.ai_out, bookinst, random)
             except InvalidBookException:
                 print("invalid opening book specified. make sure your .book file is in the 'books' folder")
                 return
@@ -34,10 +38,11 @@ class MICSClient(object):
             except:
                 print("invalid ai specified. please check your code.")
                 return
-            self.name = '%s:%s'%(ai, book_name)
+            self.name = '%s:%s'%(ai, book)
         else:
             self.ai = None
         self.verbose = verbose
+        self.opponent = opponent
         self.output('connecting to %s:%s'%(host,port))
         self.board = Board()
         self.moves = List()
@@ -92,6 +97,7 @@ class MICSClient(object):
         x.add_attribute('variant', variant)
         x.add_attribute('name',self.name)
         self.send(x)
+        self.opponent and getOpponent(initial, increment, variant)
 
     def save(self):
         self.display.text('game saved')
@@ -221,24 +227,27 @@ class MICSClient(object):
             self.conn.write(str(data))
 
 if __name__ == "__main__":
+    defs = config.defaults
     parser = optparse.OptionParser('client [-s SERVER] [-p PORT] [-n NAME] [-a AI] [-d DEPTH] [-b BOOK] [-r RANDOM] [-v]')
-    parser.add_option('-s', '--server', dest='server', default='mariobalibrera.com', help='connect to this server. default: mariobalibrera.com')
-    parser.add_option('-p', '--port', dest='port', default='7777', help='connect to MICS server on this port. default: 7777')
-    parser.add_option('-n', '--name', dest='name', default='anonymous', help='what do you call yourself?')
+    parser.add_option('-s', '--server', dest='server', default=defs.server, help='connect to this server. default: %s'%(defs.server,))
+    parser.add_option('-p', '--port', dest='port', default=defs.port, help='connect to MICS server on this port. default: %s'%(defs.port,))
+    parser.add_option('-n', '--name', dest='name', default=defs.name, help='what do you call yourself?')
     parser.add_option('-a', '--ai', dest='ai', default='', help='use an artificial intelligence script (from the ai folder)')
     parser.add_option('-d', '--depth', dest='depth', default='1', help='change the ply-count of your ai script. default: 1')
     parser.add_option('-b', '--book', dest='book', default='', help='use an opening book (from the books folder)')
     parser.add_option('-r', '--random', dest='random', default='1', help='make your ai/opening book randomly select one of the "r" best moves')
     parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='turn this on to learn the MICS protocol!')
+    parser.add_option('-t', '--tiny', action='store_true', dest='tiny', default=False, help='small board')
+    parser.add_option('-o', '--opponent', action='store_true', dest='opponent', default=False, help="run opponent")
     ops = parser.parse_args()[0]
     try:
         try:    port = int(ops.port)
-        except:     print("Invalid port: %s"%ops.port);raise
+        except:     print("Invalid port: %s"%(ops.port,));raise
         try:    depth = int(ops.depth)
-        except:     print("Invalid depth: %s"%ops.depth);raise
+        except:     print("Invalid depth: %s"%(ops.depth,));raise
         try:    random = int(ops.random)
-        except:     print("Invalid random: %s"%ops.random);raise
+        except:     print("Invalid random: %s"%(ops.random,));raise
     except:
         print("exiting MICS client")
     else:
-        MICSClient(ops.server, port, ops.verbose, ops.name, ops.ai, depth, ops.book, random)
+        MICSClient(ops.server, port, ops.verbose, ops.name, ops.ai, depth, ops.book, random, ops.tiny, ops.opponent)

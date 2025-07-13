@@ -1,5 +1,5 @@
 import pygame, string
-from config import UNIT, WIDTH, HEIGHT
+from config import config
 
 def maketrans(a, b):
     if hasattr(string, "maketrans"):
@@ -91,12 +91,14 @@ class Input(object):
         else:
             self.quit_cb()
 
-    def tile(self, cb, u=UNIT, x_min=None, x_max=None, y_min=None, y_max=None):
-        mult = UNIT/u
+    def tile(self, cb, x_min=None, x_max=None, y_min=None, y_max=None):
+        sizes = config.sizes
+        mult = sizes.mult
+        u = sizes.unit
         if x_min is None: x_min = 0
-        if x_max is None: x_max = WIDTH*mult
+        if x_max is None: x_max = sizes.width * mult
         if y_min is None: y_min = 0
-        if y_max is None: y_max = HEIGHT*mult
+        if y_max is None: y_max = sizes.height * mult
         def cb2(a, b):
             x = int(a/u)
             y = int(b/u)

@@ -1,3 +1,5 @@
 chesstools
 pygame
+venvr
 dez
+fyg
