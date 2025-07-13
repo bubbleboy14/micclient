@@ -7,11 +7,10 @@ from chesstools.piece import LETTER_TO_PIECE
 from chesstools.book import Book, InvalidBookException
 from vopp import getOpponent
 from display import Display
-from config import config
+from config import config, setScale
 
 class MICSClient(object):
     def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False):
-        from config import setScale
         setScale(not tiny)
         self.name = name
         if ai:
