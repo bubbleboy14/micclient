@@ -70,7 +70,7 @@ class MICSClient(Named):
         self.display and self.display.get_game_settings()
         self.send(XMLNode('list'))
 
-    def seek(self, initial, increment, variant="standard"):
+    def seek(self, initial, increment, variant="standard", lurk=False):
         self.displog('finding new game...')
         x = XMLNode('seek')
         x.add_attribute('initial',initial)
@@ -78,7 +78,10 @@ class MICSClient(Named):
         x.add_attribute('variant', variant)
         x.add_attribute('name',self.name)
         self.send(x)
-        self.opponent and getOpponent(initial, increment, variant)
+        if lurk:
+            self.game = (initial, increment)
+        if self.opponent:
+            getOpponent(initial, increment, variant)
 
     def save(self):
         self.displog('game saved')
