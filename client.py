@@ -7,7 +7,6 @@ from chesstools.piece import LETTER_TO_PIECE
 from config import config, setScale
 from player import getPlayer
 from vopp import getOpponent
-from display import Display
 
 class MICSClient(Named):
     def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False, invisible=False, game=None):
@@ -20,7 +19,10 @@ class MICSClient(Named):
         self.output('connecting to %s:%s'%(host,port))
         self.board = Board()
         self.moves = List()
-        self.display = not invisible and Display(self.move, self.promotion, self.draw, self.new, self.save, self.quit, self.timeout, self.seek, self.chat)
+        self.display = None
+        if not invisible:
+            from display import Display
+            self.display = Display(self.move, self.promotion, self.draw, self.new, self.save, self.quit, self.timeout, self.seek, self.chat)
         self.color = None
         self.last_color = None
         self.timelock = None
