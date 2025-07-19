@@ -1,9 +1,9 @@
 import os
-from fyg.util import Loggy
+from fyg.util import Named
 from random import choice as ranchoice
 from chesstools.book import Book, InvalidBookException
 
-class Player(Loggy):
+class Player(Named):
 	def __init__(self, mover, outer, ai="simple", book="random", depth=1, random=1):
 		self.name = '%s:%s'%(ai, book)
 		self.ai = None

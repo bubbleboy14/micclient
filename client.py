@@ -1,4 +1,5 @@
 import rel, optparse
+from fyg.util import Named
 from dez.network import SimpleClient
 from dez.xml_tools import XMLNode
 from chesstools import Board, Move, List, COLORS
@@ -8,17 +9,17 @@ from player import getPlayer
 from vopp import getOpponent
 from display import Display
 
-class MICSClient(object):
-    def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False):
+class MICSClient(Named):
+    def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False, invisible=False):
         setScale(not tiny)
-        self.ai = getPlayer(self.move, self.ai_out, ai, book, depth, random)
+        self.ai = getPlayer(self.move, self.displog, ai, book, depth, random)
         self.name = self.ai and self.ai.name or name
         self.verbose = verbose
         self.opponent = opponent
         self.output('connecting to %s:%s'%(host,port))
         self.board = Board()
         self.moves = List()
-        self.display = Display(self.move, self.promotion, self.draw, self.new, self.save, self.quit, self.timeout, self.seek, self.chat)
+        self.display = not invisible and Display(self.move, self.promotion, self.draw, self.new, self.save, self.quit, self.timeout, self.seek, self.chat)
         self.color = None
         self.last_color = None
         self.timelock = None
@@ -31,38 +32,37 @@ class MICSClient(object):
         self.conn.set_close_cb(self.__closed)
         self.conn.set_rmode_xml(self.recv)
         self.active = True
-        self.display.text('logged in')
+        self.displog('logged in')
 
     def __closed(self):
         self.active = False
-        self.display.text('connection lost')
+        self.displog('connection lost')
 
-    def ai_out(self, txt):
-        self.display.text(txt)
+    def displog(self, txt):
+        self.display and self.display.text(txt) or self.log(txt)
 
     def output(self, txt):
-        if self.verbose:
-            print(txt)
+        self.verbose and self.log(txt)
 
     def chat(self, txt):
         x = XMLNode('chat')
         x.add_child(txt.replace('<','&lt;').replace('>','&gt;'))
         self.send(x)
-        self.display.draw_chat(txt, self.color)
+        self.display and self.display.draw_chat(txt, self.color)
 
     def draw(self):
-        self.display.text('you offer a draw')
+        self.displog('you offer a draw')
         self.send(XMLNode('draw'))
 
     def new(self):
         if self.color:
             self.send(XMLNode('forfeit'))
-        self.display.text('time controls')
-        self.display.get_game_settings()
+        self.displog('time controls')
+        self.display and self.display.get_game_settings()
         self.send(XMLNode('list'))
 
     def seek(self, initial, increment, variant):
-        self.display.text('finding new game...')
+        self.displog('finding new game...')
         x = XMLNode('seek')
         x.add_attribute('initial',initial)
         x.add_attribute('increment',increment)
@@ -72,26 +72,26 @@ class MICSClient(object):
         self.opponent and getOpponent(initial, increment, variant)
 
     def save(self):
-        self.display.text('game saved')
+        self.displog('game saved')
         self.moves.save(self.last_color)
 
     def quit(self):
         if self.color:
-            self.display.text('you forfeit')
+            self.displog('you forfeit')
             self.send(XMLNode('forfeit'))
         rel.timeout(.1, rel.abort)
 
     def timeout(self):
-        self.display.text('you lose on time')
+        self.displog('you lose on time')
         self.send(XMLNode('timeout'))
 
     def reset_board(self):
-        self.display.reset(self.color)
+        self.display and self.display.reset(self.color)
         for x in range(8):
             for y in range(8):
                 p = self.board.position[x][y]
                 if p:
-                    self.display.update((x,y), p)
+                    self.display and self.display.update((x,y), p)
 
     def promotion(self, choice):
         last = self.moves.last_move
@@ -122,25 +122,29 @@ class MICSClient(object):
                 else:
                     self.submit_move(m)
             else:
-                self.display.text('bad move: %s'%m)
-                self.display.unselect()
-                self.display.get_move()
+                self.displog('bad move: %s'%(m,))
+                if self.display:
+                    self.display.unselect()
+                    self.display.get_move()
         else:
-                self.display.text('not in game')
+            self.displog('not in game')
 
     def update(self, msg):
-        for pos, piece in self.board.changes:
-            self.display.update(pos, piece)
-        if self.board.captured:
-            self.display.capture(self.board.captured)
-        self.display.draw_moves(self.moves.all()[-13:-1])
-        self.display.text(msg)
+        if self.display:
+            for pos, piece in self.board.changes:
+                self.display.update(pos, piece)
+            if self.board.captured:
+                self.display.capture(self.board.captured)
+            self.display.draw_moves(self.moves.all()[-13:-1])
+        self.displog(msg)
 
     def get_move(self):
         if self.ai:
             self.ai(self.board)
-        else:
+        elif self.display:
             self.display.get_move()
+        else:
+            self.log("can't get move - no ai or display!")
 
     def recv(self, data):
         self.output("RECV: %s"%data)
@@ -149,10 +153,10 @@ class MICSClient(object):
             self.last_color = self.color
             initial, increment = data.attr('initial'), data.attr('increment')
             self.timelock = int(data.attr('timelock'))
-            self.display.set_time(initial, increment)
+            self.display and self.display.set_time(initial, increment)
             w, b = data.attr('white'), data.attr('black')
             self.moves.reset((int(initial)/60, increment), w, b)
-            self.display.set_caption('%s v %s'%(w,b))
+            self.display and self.display.set_caption('%s v %s'%(w,b))
             if data.attr('lineup'):
                 self.board.reset_960([LETTER_TO_PIECE[p] for p in data.attr('lineup')])
             else:
@@ -162,34 +166,34 @@ class MICSClient(object):
             if self.color == 'white':
                 self.get_move()
         elif data.name == 'time':
-            self.display.update_time(data.attr('white'), data.attr('black'))
+            self.display and self.display.update_time(data.attr('white'), data.attr('black'))
         elif data.name == 'confirm':
-            self.display.switch_time()
+            self.display and self.display.switch_time()
             self.update('move confirmed')
         elif data.name == 'move':
             if self.timelock:
                 self.send(XMLNode('received'))
-            self.display.switch_time()
+            self.display and self.display.switch_time()
             m = Move(data.attr('from'), data.attr('to'), data.attr('promotion'))
             self.moves.add(m)
             self.board.move(m)
             self.update('your move')
             self.get_move()
         elif data.name == 'chat':
-            self.display.draw_chat(data.children[0].replace('&lt;','<').replace('&gt;','>'), COLORS[self.color])
+            self.display and self.display.draw_chat(data.children[0].replace('&lt;','<').replace('&gt;','>'), COLORS[self.color])
         elif data.name == 'gameover':
             self.moves.outcome = data.attr('outcome')
             if self.moves.last_move:
                 self.moves.last_move.comment = data.attr('reason')
-            self.display.text("%s - %s"%(self.moves.outcome, data.attr('reason')))
-            self.display.stop_time()
+            self.displog("%s - %s"%(self.moves.outcome, data.attr('reason')))
+            self.display and self.display.stop_time()
             self.color = None
         elif data.name == 'draw':
-            self.display.text('draw?')
+            self.displog('draw?')
         elif data.name == 'notice':
-            self.display.text(data.children[0])
+            self.displog(data.children[0])
         elif data.name == 'list':
-            self.display.list_seeks([(child.attr('name'), '%s-%s %s'%(int(child.attr('initial'))/60, child.attr('increment'), child.attr('variant'))) for child in data.children])
+            self.display and self.display.list_seeks([(child.attr('name'), '%s-%s %s'%(int(child.attr('initial'))/60, child.attr('increment'), child.attr('variant'))) for child in data.children])
         else:
             raise Exception("invalid data from server: %s\ndo you have the most recent client release?"%data)
 
@@ -211,6 +215,7 @@ if __name__ == "__main__":
     parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='turn this on to learn the MICS protocol!')
     parser.add_option('-t', '--tiny', action='store_true', dest='tiny', default=False, help='small board')
     parser.add_option('-o', '--opponent', action='store_true', dest='opponent', default=False, help="run opponent")
+    parser.add_option('-i', '--invisible', action='store_true', dest='invisible', default=False, help="no visible board")
     ops = parser.parse_args()[0]
     try:
         try:    port = int(ops.port)
@@ -222,4 +227,4 @@ if __name__ == "__main__":
     except:
         print("exiting MICS client")
     else:
-        MICSClient(ops.server, port, ops.verbose, ops.name, ops.ai, depth, ops.book, random, ops.tiny, ops.opponent)
+        MICSClient(ops.server, port, ops.verbose, ops.name, ops.ai, depth, ops.book, random, ops.tiny, ops.opponent, ops.invisible)
