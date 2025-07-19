@@ -11,6 +11,7 @@ class Player(Named):
 			if book:
 				if book == "random": # omit white-only minchev
 					book = ranchoice(["fischer", "morphy", "najdorf", "spassky"])
+					self.name = '%s:%s'%(ai, book)
 				bookinst = Book(os.path.join('books', book))
 			else:
 				book = '_nobook'

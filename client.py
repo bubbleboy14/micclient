@@ -1,5 +1,5 @@
 import rel, optparse
-from fyg.util import Named
+from fyg.util import Named, log
 from dez.network import SimpleClient
 from dez.xml_tools import XMLNode
 from chesstools import Board, Move, List, COLORS
@@ -10,10 +10,11 @@ from vopp import getOpponent
 from display import Display
 
 class MICSClient(Named):
-    def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False, invisible=False):
+    def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False, invisible=False, game=None):
         setScale(not tiny)
         self.ai = getPlayer(self.move, self.displog, ai, book, depth, random)
         self.name = self.ai and self.ai.name or name
+        self.game = game
         self.verbose = verbose
         self.opponent = opponent
         self.output('connecting to %s:%s'%(host,port))
@@ -33,6 +34,7 @@ class MICSClient(Named):
         self.conn.set_rmode_xml(self.recv)
         self.active = True
         self.displog('logged in')
+        self.next_game()
 
     def __closed(self):
         self.active = False
@@ -43,6 +45,11 @@ class MICSClient(Named):
 
     def output(self, txt):
         self.verbose and self.log(txt)
+
+    def next_game(self):
+        if self.game:
+            self.log("here for a", *self.game, "game")
+            self.seek(*self.game)
 
     def chat(self, txt):
         x = XMLNode('chat')
@@ -61,7 +68,7 @@ class MICSClient(Named):
         self.display and self.display.get_game_settings()
         self.send(XMLNode('list'))
 
-    def seek(self, initial, increment, variant):
+    def seek(self, initial, increment, variant="standard"):
         self.displog('finding new game...')
         x = XMLNode('seek')
         x.add_attribute('initial',initial)
@@ -188,6 +195,7 @@ class MICSClient(Named):
             self.displog("%s - %s"%(self.moves.outcome, data.attr('reason')))
             self.display and self.display.stop_time()
             self.color = None
+            self.game and rel.timeout(5, self.next_game)
         elif data.name == 'draw':
             self.displog('draw?')
         elif data.name == 'notice':
@@ -201,6 +209,9 @@ class MICSClient(Named):
         self.output('SEND: %s'%data)
         if self.active:
             self.conn.write(str(data))
+
+tconts = ["2", "5", "10", "20"]
+tincs  = ["0", "2", "5", "12"]
 
 if __name__ == "__main__":
     defs = config.defaults
@@ -216,15 +227,38 @@ if __name__ == "__main__":
     parser.add_option('-t', '--tiny', action='store_true', dest='tiny', default=False, help='small board')
     parser.add_option('-o', '--opponent', action='store_true', dest='opponent', default=False, help="run opponent")
     parser.add_option('-i', '--invisible', action='store_true', dest='invisible', default=False, help="no visible board")
+    parser.add_option('-g', '--game', dest="game", default=None, help="automatically seek with given ('10/5' for instance) time controls")
     ops = parser.parse_args()[0]
+    game = ops.game
     try:
-        try:    port = int(ops.port)
-        except:     print("Invalid port: %s"%(ops.port,));raise
-        try:    depth = int(ops.depth)
-        except:     print("Invalid depth: %s"%(ops.depth,));raise
-        try:    random = int(ops.random)
-        except:     print("Invalid random: %s"%(ops.random,));raise
+        try:
+            if game:
+                game = game.split("/")
+                if game[0] not in tconts or game[1] not in tincs:
+                    raise
+                game = (int(game[0]) * 60, int(game[1]))
+        except:
+            log("Invalid time controls: %s"%(ops.game,))
+            log("try something like 10/5")
+            log("the first value (initial) can be 2, 5, 10, or 20")
+            log("the second value (increment) can be 0, 2, 5, or 12")
+            raise
+        try:
+            port = int(ops.port)
+        except:
+            log("Invalid port: %s"%(ops.port,))
+            raise
+        try:
+            depth = int(ops.depth)
+        except:
+            log("Invalid depth: %s"%(ops.depth,))
+            raise
+        try:
+            random = int(ops.random)
+        except:
+            log("Invalid random: %s"%(ops.random,))
+            raise
     except:
-        print("exiting MICS client")
+        log("exiting MICS client")
     else:
-        MICSClient(ops.server, port, ops.verbose, ops.name, ops.ai, depth, ops.book, random, ops.tiny, ops.opponent, ops.invisible)
+        MICSClient(ops.server, port, ops.verbose, ops.name, ops.ai, depth, ops.book, random, ops.tiny, ops.opponent, ops.invisible, game)
