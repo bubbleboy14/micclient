@@ -1,46 +1,18 @@
-import rel, optparse, os
-from random import choice as ranchoice
+import rel, optparse
 from dez.network import SimpleClient
 from dez.xml_tools import XMLNode
 from chesstools import Board, Move, List, COLORS
 from chesstools.piece import LETTER_TO_PIECE
-from chesstools.book import Book, InvalidBookException
+from config import config, setScale
+from player import getPlayer
 from vopp import getOpponent
 from display import Display
-from config import config, setScale
 
 class MICSClient(object):
     def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False):
         setScale(not tiny)
-        self.name = name
-        if ai:
-            try:
-                if book:
-                    if book == "random": # omit white-only minchev
-                        book = ranchoice(["fischer", "morphy", "najdorf", "spassky"])
-                    bookinst = Book(os.path.join('books', book))
-                else:
-                    book = '_nobook'
-                    bookinst = None
-                self.ai = __import__("ai.%s"%(ai,),fromlist=["ai"]).Brain(depth, self.move, self.ai_out, bookinst, random)
-            except InvalidBookException:
-                print("invalid opening book specified. make sure your .book file is in the 'books' folder")
-                return
-            except ImportError:
-                print("invalid ai specified. make sure your script is in the 'ai' folder.")
-                return
-            except AttributeError:
-                print("invalid ai specified. make sure your AI class is called 'Brain'.")
-                return
-            except TypeError:
-                print("invalid ai specified. make sure your AI class's constructor accepts an integer ply-count, a move callback, an output callback, an opening book object, and a randomness integer.")
-                return
-            except:
-                print("invalid ai specified. please check your code.")
-                return
-            self.name = '%s:%s'%(ai, book)
-        else:
-            self.ai = None
+        self.ai = getPlayer(self.move, self.ai_out, ai, book, depth, random)
+        self.name = self.ai and self.ai.name or name
         self.verbose = verbose
         self.opponent = opponent
         self.output('connecting to %s:%s'%(host,port))
