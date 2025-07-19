@@ -11,7 +11,7 @@ config = Config({
 		"tiny": True,
 		"ai": "simple",
 		"book": "random",
-		"invisible": False
+		"invisible": True
 	},
 	"rects": {},
 	"sizes": {

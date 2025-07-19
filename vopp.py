@@ -19,7 +19,7 @@ class Opponent(object):
 			self.client = MICSClient(defs.server, defs.port, **kwargs)
 		return self.client
 
-	def __call__(self, initial, increment, variant):
+	def __call__(self, initial, increment, variant="standard"):
 		self.log("seeking", initial, increment, variant)
 		self.getClient().seek(initial, increment, variant)
 
@@ -33,5 +33,5 @@ def vagent():
 		VAGENT.register(Opponent, withpath=True)
 	return VAGENT
 
-def getOpponent(initial, increment, variant):
+def getOpponent(initial, increment, variant="standard"):
 	vagent().run("Opponent", initial, increment, variant)
