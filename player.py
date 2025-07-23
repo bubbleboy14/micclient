@@ -4,7 +4,7 @@ from random import choice as ranchoice
 from chesstools.book import Book, InvalidBookException
 
 class Player(Named):
-	def __init__(self, mover, outer, ai="simple", book="random", depth=1, random=1):
+	def __init__(self, mover, outer, ai="simple", book="random", depth=1, random=1, rofflim=6, dbuntil=30):
 		self.name = '%s:%s'%(ai, book)
 		self.ai = None
 		try:
@@ -16,7 +16,7 @@ class Player(Named):
 			else:
 				book = '_nobook'
 				bookinst = None
-			self.ai = __import__("ai.%s"%(ai,),fromlist=["ai"]).Brain(depth, mover, outer, bookinst, random)
+			self.ai = __import__("ai.%s"%(ai,),fromlist=["ai"]).Brain(depth, mover, outer, bookinst, random, rofflim, dbuntil)
 		except InvalidBookException:
 			self.log("invalid opening book specified. make sure your .book file is in the 'books' folder")
 		except ImportError:
@@ -33,7 +33,7 @@ class Player(Named):
 		self.log("passing board to ai")
 		self.ai(board)
 
-def getPlayer(mover, outer, ai="simple", book="random", depth=1, random=1):
+def getPlayer(mover, outer, ai="simple", book="random", depth=1, random=1, rofflim=6, dbuntil=30):
 	if not ai: return
-	player = Player(mover, outer, ai="simple", book="random", depth=1, random=1)
+	player = Player(mover, outer, ai, book, depth, random, rofflim, dbuntil)
 	return player.ai and player
