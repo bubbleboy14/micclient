@@ -9,7 +9,7 @@ from player import getPlayer
 from vopp import getOpponent
 
 class MICSClient(Named):
-    def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False, invisible=False, game=None, rofflim=6, dbuntil=30):
+    def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False, invisible=False, game=None, rofflim=5, dbuntil=30):
         setScale(not tiny)
         self.ai = getPlayer(self.move, self.displog, ai, book, depth, random, rofflim, dbuntil)
         self.name = self.ai and self.ai.name or name
