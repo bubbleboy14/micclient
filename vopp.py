@@ -38,6 +38,6 @@ def getOpponent(initial, increment, variant="standard", lurk=False):
 
 if __name__ == "__main__":
 	import rel
-	vagent().run("Opponent", 600, 5, lurk=True)
+	getOpponent(600, 5, lurk=True)
 	rel.signal(2, rel.abort)
 	rel.dispatch()
