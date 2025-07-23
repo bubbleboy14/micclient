@@ -124,6 +124,7 @@ class MICSClient(Named):
 
     def move(self, start, end, promotion=None):
         if self.color:
+            self.log("move", start, end)
             m = Move(start, end, promotion)
             if self.board.is_legal(m):
                 p = self.board.get_square(m.source)
