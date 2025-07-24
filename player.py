@@ -4,7 +4,7 @@ from random import choice as ranchoice
 from chesstools.book import Book, InvalidBookException
 
 class Player(Named):
-	def __init__(self, mover, outer, ai="simple", book="random", depth=1, random=1, rofflim=3, dbuntil=30):
+	def __init__(self, timer, mover, outer, ai="simple", book="random", depth=1, random=1, rofflim=3, dbuntil=30, rushbelow=180):
 		self.name = '%s:%s'%(ai, book)
 		self.ai = None
 		try:
@@ -16,7 +16,7 @@ class Player(Named):
 			else:
 				book = '_nobook'
 				bookinst = None
-			self.ai = __import__("ai.%s"%(ai,),fromlist=["ai"]).Brain(depth, mover, outer, bookinst, random, rofflim, dbuntil)
+			self.ai = __import__("ai.%s"%(ai,),fromlist=["ai"]).Brain(timer, mover, outer, bookinst, depth, random, rofflim, dbuntil, rushbelow)
 		except InvalidBookException:
 			self.log("invalid opening book specified. make sure your .book file is in the 'books' folder")
 		except ImportError:
@@ -29,11 +29,11 @@ class Player(Named):
 			self.log("invalid ai specified. please check your code.")
 			self.log(e)
 
-	def __call__(self, board):
-		self.log("passing board to ai")
-		self.ai(board)
+	def __call__(self, board, color):
+		self.log("passing board to ai with color:", color)
+		self.ai(board, color)
 
-def getPlayer(mover, outer, ai="simple", book="random", depth=1, random=1, rofflim=3, dbuntil=30):
+def getPlayer(timer, mover, outer, ai="simple", book="random", depth=1, random=1, rofflim=3, dbuntil=30, rushbelow=180):
 	if not ai: return
-	player = Player(mover, outer, ai, book, depth, random, rofflim, dbuntil)
+	player = Player(timer, mover, outer, ai, book, depth, random, rofflim, dbuntil, rushbelow)
 	return player.ai and player
