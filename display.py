@@ -1,6 +1,5 @@
 import rel, os, pygame
 pygame.init()
-from chesstools import Timer
 from chesstools.move import from_tile
 from input import Input
 from config import config
@@ -11,8 +10,8 @@ colors = config.colors
 GAME_COLORS = {'white': colors.bright, 'black':colors.pitch}
 
 class Display(object):
-    def __init__(self, move_cb, promotion_cb, draw_cb, new_cb, save_cb, quit_cb, timeout_cb, seek_cb, chat_cb):
-        self.cbs = {'move':move_cb, 'promotion':promotion_cb, 'draw':draw_cb, 'new':new_cb, 'save':save_cb, 'quit':quit_cb, 'timeout':timeout_cb, 'seek':seek_cb, 'chat':chat_cb}
+    def __init__(self, timer, move_cb, promotion_cb, draw_cb, new_cb, save_cb, quit_cb, seek_cb, chat_cb):
+        self.cbs = {'move':move_cb, 'promotion':promotion_cb, 'draw':draw_cb, 'new':new_cb, 'save':save_cb, 'quit':quit_cb, 'seek':seek_cb, 'chat':chat_cb}
         UNIT = sizes.unit
         HALF = sizes.half
         BRIGHT = colors.bright
@@ -37,36 +36,13 @@ class Display(object):
         self.medium_font = pygame.font.Font(None, int(HALF))
         self.banner_font = pygame.font.Font(None, UNIT)
         self.timer_font = pygame.font.Font(None, int(UNIT*8/7))
-        self.timer = Timer(300, 0)
-        self.ticker = rel.timeout(1, self.refresh_time)
+        self.timer = timer
         self.chats = [('',BRIGHT),('',BRIGHT),('',BRIGHT)]
         self.reset('white')
         self.seeking = False
 
     def set_caption(self, txt):
         pygame.display.set_caption(txt)
-
-    def set_time(self, initial, increment):
-        self.timer.set(initial, increment)
-
-    def stop_time(self):
-        self.timer.stop()
-        self.timer.reset()
-
-    def refresh_time(self):
-        self.timer.update()
-        if self.timer.get_opponent(self.color) < 0:
-            self.cbs['timeout']()
-        self.draw_timers()
-        return True
-
-    def update_time(self, w, b):
-        self.timer.set_clocks(w, b)
-        if not self.timer.start_time:
-            self.timer.start()
-
-    def switch_time(self):
-        self.timer.switch()
 
     def box(self, rect, fill=None, border=None, blit=None, attr=None):
         if fill:
