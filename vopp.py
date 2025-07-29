@@ -1,3 +1,5 @@
+import rel, optparse
+
 class Opponent(object):
 	def __init__(self, log=print):
 		self.logger = log
@@ -19,9 +21,9 @@ class Opponent(object):
 			self.client = MICSClient(defs.server, defs.port, **kwargs)
 		return self.client
 
-	def __call__(self, initial, increment, variant="standard", lurk=False):
+	def __call__(self, initial, increment, variant="standard", lurk=False, invisible=True):
 		self.log("seeking", initial, increment, variant)
-		self.getClient().seek(initial, increment, variant, lurk)
+		self.getClient(invisible=invisible).seek(initial, increment, variant, lurk)
 
 VAGENT = None
 
@@ -33,11 +35,14 @@ def vagent():
 		VAGENT.register(Opponent, withpath=True)
 	return VAGENT
 
-def getOpponent(initial, increment, variant="standard", lurk=False):
-	vagent().run("Opponent", initial, increment, variant, lurk)
+def getOpponent(initial, increment, variant="standard", lurk=False, invisible=True):
+	vagent().run("Opponent", initial, increment, variant, lurk, invisible)
 
 if __name__ == "__main__":
-	import rel
-	getOpponent(600, 5, lurk=True)
+	parser = optparse.OptionParser("vopp [--visible]")
+	parser.add_option("-v", "--visible", action="store_true",
+		dest="visible", default=False, help="visible board")
+	ops = parser.parse_args()[0]
+	getOpponent(600, 5, lurk=True, invisible=not ops.visible)
 	rel.signal(2, rel.abort)
 	rel.dispatch()

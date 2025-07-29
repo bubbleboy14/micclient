@@ -10,8 +10,7 @@ config = Config({
 		"depth": 2,
 		"tiny": True,
 		"ai": "simple",
-		"book": "random",
-		"invisible": True
+		"book": "random"
 	},
 	"rects": {},
 	"sizes": {
