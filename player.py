@@ -4,7 +4,7 @@ from random import choice as ranchoice
 from chesstools.book import Book, InvalidBookException
 
 class Player(Named):
-	def __init__(self, timer, mover, outer, ai="simple", book="random", depth=1, random=1, rofflim=3, dbuntil=30, rushbelow=180):
+	def __init__(self, timer, mover, outer, ai="simple", book="random", depth=1, random=1, rofflim=3, dbuntil=30, rushbelow=240):
 		self.name = '%s:%s'%(ai, book)
 		self.ai = None
 		try:
@@ -33,7 +33,7 @@ class Player(Named):
 		self.log("passing board to ai with color:", color)
 		self.ai(board, color)
 
-def getPlayer(timer, mover, outer, ai="simple", book="random", depth=1, random=1, rofflim=3, dbuntil=30, rushbelow=180):
+def getPlayer(timer, mover, outer, ai="simple", book="random", depth=1, random=1, rofflim=3, dbuntil=30, rushbelow=240):
 	if not ai: return
 	player = Player(timer, mover, outer, ai, book, depth, random, rofflim, dbuntil, rushbelow)
 	return player.ai and player
