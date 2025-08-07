@@ -35,7 +35,7 @@ def vagent():
 		VAGENT.register(Opponent, withpath=True)
 	return VAGENT
 
-def getOpponent(initial, increment, variant="standard", lurk=False, invisible=True):
+def getOpponent(initial, increment, variant="standard", lurk=False, invisible=False):
 	vagent().run("Opponent", initial, increment, variant, lurk, invisible)
 
 if __name__ == "__main__":
