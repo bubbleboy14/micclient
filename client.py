@@ -9,11 +9,11 @@ from player import getPlayer
 from vopp import getOpponent
 
 class MICSClient(Named):
-    def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False, invisible=False, game=None, rofflim=3, dbuntil=30, rushbelow=240):
+    def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False, invisible=False, game=None, rofflim=3, dbuntil=30, rushbelow=240, preppy=True):
         setScale(not tiny)
         self.timer = Timer(300, 0)
         self.ticker = rel.timeout(1, self.refresh_time)
-        self.ai = getPlayer(self.timer, self.move, self.displog, ai, book, depth, random, rofflim, dbuntil, rushbelow)
+        self.ai = getPlayer(self.timer, self.move, self.displog, ai, book, depth, random, rofflim, dbuntil, rushbelow, preppy)
         self.name = self.ai and self.ai.name or name
         self.game = game
         self.verbose = verbose

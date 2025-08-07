@@ -21,9 +21,9 @@ class Opponent(object):
 			self.client = MICSClient(defs.server, defs.port, **kwargs)
 		return self.client
 
-	def __call__(self, initial, increment, variant="standard", lurk=False, invisible=True):
+	def __call__(self, initial, increment, variant="standard", lurk=False, invisible=True, preppy=True):
 		self.log("seeking", initial, increment, variant)
-		self.getClient(invisible=invisible).seek(initial, increment, variant, lurk)
+		self.getClient(invisible=invisible, preppy=preppy).seek(initial, increment, variant, lurk)
 
 VAGENT = None
 
@@ -35,14 +35,16 @@ def vagent():
 		VAGENT.register(Opponent, withpath=True)
 	return VAGENT
 
-def getOpponent(initial, increment, variant="standard", lurk=False, invisible=False):
+def getOpponent(initial, increment, variant="standard", lurk=False, invisible=False, preppy=True):
 	vagent().run("Opponent", initial, increment, variant, lurk, invisible)
 
 if __name__ == "__main__":
 	parser = optparse.OptionParser("vopp [--visible]")
 	parser.add_option("-v", "--visible", action="store_true",
 		dest="visible", default=False, help="visible board")
+	parser.add_option("-u", "--unpreppy", action="store_true",
+		dest="unpreppy", default=False, help="non-preppy transposition table")
 	ops = parser.parse_args()[0]
-	getOpponent(600, 5, lurk=True, invisible=not ops.visible)
+	getOpponent(600, 5, lurk=True, invisible=not ops.visible, preppy=not ops.unpreppy)
 	rel.signal(2, rel.abort)
 	rel.dispatch()
