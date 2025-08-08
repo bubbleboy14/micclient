@@ -36,7 +36,7 @@ def vagent():
 	return VAGENT
 
 def getOpponent(initial, increment, variant="standard", lurk=False, invisible=False, preppy=True):
-	vagent().run("Opponent", initial, increment, variant, lurk, invisible)
+	vagent().run("Opponent", initial, increment, variant, lurk, invisible, preppy)
 
 if __name__ == "__main__":
 	parser = optparse.OptionParser("vopp [--visible]")
