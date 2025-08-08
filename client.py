@@ -9,7 +9,7 @@ from player import getPlayer
 from vopp import getOpponent
 
 class MICSClient(Named):
-    def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False, invisible=False, game=None, rofflim=3, dbuntil=30, rushbelow=240, preppy=True):
+    def __init__(self, host, port, verbose=False, name="anonymous", ai="", depth=1, book="", random=1, tiny=False, opponent=False, invisible=False, preppy=True, game=None, rofflim=3, dbuntil=30, rushbelow=240):
         setScale(not tiny)
         self.timer = Timer(300, 0)
         self.ticker = rel.timeout(1, self.refresh_time)
@@ -258,6 +258,7 @@ if __name__ == "__main__":
     parser.add_option('-t', '--tiny', action='store_true', dest='tiny', default=False, help='small board')
     parser.add_option('-o', '--opponent', action='store_true', dest='opponent', default=False, help="run opponent")
     parser.add_option('-i', '--invisible', action='store_true', dest='invisible', default=False, help="no visible board")
+    parser.add_option("-u", "--unpreppy", action="store_true", dest="unpreppy", default=False, help="non-preppy transposition table")
     parser.add_option('-g', '--game', dest="game", default=None, help="automatically seek with given ('10/5' for instance) time controls")
     ops = parser.parse_args()[0]
     game = ops.game
@@ -292,4 +293,4 @@ if __name__ == "__main__":
     except:
         log("exiting MICS client")
     else:
-        MICSClient(ops.server, port, ops.verbose, ops.name, ops.ai, depth, ops.book, random, ops.tiny, ops.opponent, ops.invisible, game)
+        MICSClient(ops.server, port, ops.verbose, ops.name, ops.ai, depth, ops.book, random, ops.tiny, ops.opponent, ops.invisible, not ops.unpreppy, game)
