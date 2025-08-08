@@ -1,4 +1,5 @@
 from fyg import Config
+from fyg.util import log
 
 config = Config({
 	"defaults": {
@@ -46,3 +47,22 @@ def setScale(doubled):
 	rects.update("banner", [UNIT, UNIT * 3, UNIT * 6, UNIT])
 	rects.update("move", [UNIT * 8, UNIT, UNIT * 2, UNIT * 6])
 	rects.update("chat", [3 * UNIT, 8 * UNIT, sizes.chat, UNIT])
+
+tconts = ["2", "5", "10", "20"]
+tincs  = ["0", "2", "5", "12"]
+
+def getTime(game):
+	gstring = game
+	try:
+		if game:
+			game = game.split("/")
+			if game[0] not in tconts or game[1] not in tincs:
+				raise
+			game = (int(game[0]) * 60, int(game[1]))
+	except:
+		log("Invalid time controls: %s"%(gstring,))
+		log("try something like 10/5")
+		log("the first value (initial) can be 2, 5, 10, or 20")
+		log("the second value (increment) can be 0, 2, 5, or 12")
+		raise
+	return game

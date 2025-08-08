@@ -4,7 +4,7 @@ from dez.network import SimpleClient
 from dez.xml_tools import XMLNode
 from chesstools import Board, Move, Timer, List, COLORS
 from chesstools.piece import LETTER_TO_PIECE
-from config import config, setScale
+from config import config, setScale, getTime
 from player import getPlayer
 from vopp import getOpponent
 
@@ -241,9 +241,6 @@ class MICSClient(Named):
         if self.active:
             self.conn.write(str(data))
 
-tconts = ["2", "5", "10", "20"]
-tincs  = ["0", "2", "5", "12"]
-
 if __name__ == "__main__":
     defs = config.defaults
     parser = optparse.OptionParser('client [-s SERVER] [-p PORT] [-n NAME] [-a AI] [-d DEPTH] [-b BOOK] [-r RANDOM] [-v]')
@@ -261,20 +258,8 @@ if __name__ == "__main__":
     parser.add_option("-u", "--unpreppy", action="store_true", dest="unpreppy", default=False, help="non-preppy transposition table")
     parser.add_option('-g', '--game', dest="game", default=None, help="automatically seek with given ('10/5' for instance) time controls")
     ops = parser.parse_args()[0]
-    game = ops.game
     try:
-        try:
-            if game:
-                game = game.split("/")
-                if game[0] not in tconts or game[1] not in tincs:
-                    raise
-                game = (int(game[0]) * 60, int(game[1]))
-        except:
-            log("Invalid time controls: %s"%(ops.game,))
-            log("try something like 10/5")
-            log("the first value (initial) can be 2, 5, 10, or 20")
-            log("the second value (increment) can be 0, 2, 5, or 12")
-            raise
+        game = getTime(ops.game)
         try:
             port = int(ops.port)
         except:

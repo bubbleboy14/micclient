@@ -1,4 +1,5 @@
 import rel, optparse
+from config import getTime
 
 class Opponent(object):
 	def __init__(self, log=print):
@@ -44,7 +45,9 @@ if __name__ == "__main__":
 		dest="visible", default=False, help="visible board")
 	parser.add_option("-u", "--unpreppy", action="store_true",
 		dest="unpreppy", default=False, help="non-preppy transposition table")
+	parser.add_option('-g', '--game', dest="game", default="10/5", help="automatically seek with given ('10/5' for instance) time controls")
 	ops = parser.parse_args()[0]
-	getOpponent(600, 5, lurk=True, invisible=not ops.visible, preppy=not ops.unpreppy)
+	timeparts = getTime(ops.game)
+	getOpponent(timeparts[0], timeparts[1], lurk=True, invisible=not ops.visible, preppy=not ops.unpreppy)
 	rel.signal(2, rel.abort)
 	rel.dispatch()
