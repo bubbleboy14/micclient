@@ -29,7 +29,7 @@ class Display(object):
         pygame.display.set_icon(self.N_small)
         self.input = Input(quit_cb, self.draw_input, chat_cb)
         rel.timeout(0.05, self.input.poll)
-        self.screen = pygame.display.set_mode((int(sizes.width*UNIT),int(sizes.height*UNIT)), pygame.SCALED)
+        self.screen = pygame.display.set_mode((int(sizes.width*UNIT),int(sizes.height*UNIT)), 0 if config.sizes.tiny else pygame.SCALED)
         self.highlighted = None
         self.captured = {'white':[-1,0],'black':[-1,0]}
         self.small_font = pygame.font.Font(None, int(HALF*9/10))

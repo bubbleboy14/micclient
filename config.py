@@ -37,6 +37,7 @@ def setScale(doubled):
 	HALF = UNIT / 2
 	sizes = config.sizes
 	rects = config.rects
+	sizes.update("tiny", not doubled)
 	sizes.update("mult", MULT)
 	sizes.update("unit", UNIT)
 	sizes.update("half", HALF)
