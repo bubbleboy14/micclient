@@ -29,7 +29,7 @@ class Display(object):
         pygame.display.set_icon(self.N_small)
         self.input = Input(quit_cb, self.draw_input, chat_cb)
         rel.timeout(0.05, self.input.poll)
-        self.screen = pygame.display.set_mode((int(sizes.width*UNIT),int(sizes.height*UNIT)), 0 if config.sizes.tiny else pygame.SCALED)
+        self.screen = pygame.display.set_mode((int(sizes.width*UNIT),int(sizes.height*UNIT)), 0 if sizes.tiny else pygame.SCALED)
         self.highlighted = None
         self.captured = {'white':[-1,0],'black':[-1,0]}
         self.small_font = pygame.font.Font(None, int(HALF*9/10))
@@ -228,9 +228,10 @@ class Display(object):
             r = ((8+x)*UNIT, (14+y)*HALF, UNIT, HALF)
             self.box(r, attr='b_%s'%name)
             self.input.add_interrupt(r, self.cbs[name])
-        r = (8*UNIT, HALF, 2*UNIT, HALF)
-        self.box(r, blit=self.fullscreen)
-        self.input.add_interrupt(r, self.toggle_fs)
+        if not sizes.tiny:
+            r = (8*UNIT, HALF, 2*UNIT, HALF)
+            self.box(r, blit=self.fullscreen)
+            self.input.add_interrupt(r, self.toggle_fs)
 
     def toggle_fs(self):
         pygame.display.toggle_fullscreen()

@@ -9,7 +9,6 @@ config = Config({
 	},
 	"opponent": {
 		"depth": 2,
-		"tiny": True,
 		"ai": "simple",
 		"book": "random"
 	},
